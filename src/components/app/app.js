@@ -7,20 +7,51 @@ import './app.scss';
 import ItemAddForm from "../item-add-form";
 
 export default class App extends Component {
+
+    maxId = 100;
+
     state = {
         todoData: [
-            {label: 'Drink Coffee', important: false, id: 1},
-            {label: 'Learn React', important: true, id: 2},
-            {label: 'Have a launch', important: false, id: 3}
+            this.createTodoItem('Drink Coffee'),
+            this.createTodoItem('Learn React'),
+            this.createTodoItem('Have a launch')
         ]
     }
 
-    onToggleImportant = (id)=>{
-        console.log('import ', id)
+    toggleProperty(arr, id, propName){
+        const idx = arr.findIndex((el) => el.id === id);
+        const oldItem = arr[idx]
+        const newItem = {...oldItem, [propName]: !oldItem[propName]}
+        return [
+            ...arr.slice(0, idx),
+            newItem,
+            ...arr.slice(idx + 1)
+        ]
     }
 
-    onToggleDone = (id)=>{
-        console.log('done ', id)
+    onToggleDone = (id) => {
+        this.setState(({todoData}) => {
+            return {
+                todoData: this.toggleProperty(todoData, id, 'done')
+            }
+        })
+    }
+
+    onToggleImportant = (id) => {
+        this.setState(({todoData}) => {
+            return {
+                todoData: this.toggleProperty(todoData, id, 'important')
+            }
+        })
+    }
+
+    createTodoItem(label) {
+        return {
+            label,
+            important: false,
+            done: false,
+            id: this.maxId++
+        }
     }
 
     deleteItem = (id) => {
@@ -36,15 +67,9 @@ export default class App extends Component {
         })
     }
 
-    maxId = 100;
-
     addItem = (text) => {
 
-        const newItem = {
-            label:text,
-            important: false,
-            id: this.maxId++
-        }
+        const newItem = this.createTodoItem(text)
         this.setState(({todoData}) => {
             const newArray = [
                 ...todoData,
@@ -58,9 +83,14 @@ export default class App extends Component {
 
     render() {
 
+        const doneCount = this.state.todoData
+            .filter((el)=>el.done).length;
+
+        const todoCount = this.state.todoData.length - doneCount;
+
         return (
             <div className="todo-app">
-                <AppHeader toDo={1} done={3}/>
+                <AppHeader toDo={todoCount} done={doneCount}/>
                 <div className="top-panel map">
                     <SearchPanel/>
                     <ItemStatusFilter/>
