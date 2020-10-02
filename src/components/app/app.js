@@ -16,7 +16,8 @@ export default class App extends Component {
             this.createTodoItem('Learn React'),
             this.createTodoItem('Have a launch')
         ],
-        term: ''
+        term: '',
+        filter:'all'
     }
 
     toggleProperty(arr, id, propName) {
@@ -86,7 +87,11 @@ export default class App extends Component {
         this.setState({term})
     }
 
-    search(items, term) {
+    onFilterChange = (filter) => {
+        this.setState({filter})
+    }
+
+    search(items, term)  {
         if (term.length === 0) {
             return items;
         }
@@ -96,10 +101,23 @@ export default class App extends Component {
         })
     }
 
-    render() {
-        const {todoData, term} = this.state;
+    filter(items, filter){
+        switch(filter){
+            case 'all':
+                return items;
+            case 'active':
+                return items.filter(item=> !item.done);
+            case 'done':
+                return items.filter(item=> item.done);
+            default:
+                return items;
+        }
+    }
 
-        const visibleItem = this.search(todoData, term)
+    render() {
+        const {todoData, term, filter} = this.state;
+
+        const visibleItem = this.filter(this.search(todoData, term), filter)
 
         const doneCount = this.state.todoData
             .filter((el) => el.done).length;
@@ -111,7 +129,8 @@ export default class App extends Component {
                 <AppHeader toDo={todoCount} done={doneCount}/>
                 <div className="top-panel map">
                     <SearchPanel onSearchChange={this.onSearchChange}/>
-                    <ItemStatusFilter/>
+                    <ItemStatusFilter filter={filter}
+                    onFilterChange={this.onFilterChange}/>
                 </div>
                 <TodoList todos={visibleItem}
                           onDeleted={this.deleteItem}
